@@ -70,5 +70,10 @@ func filePath() string {
 	home, err := os.UserHomeDir()
 	// 如果不能获取用户主目录，则记录错误并返回空路径
 	cobra.CheckErr(err)
-	return filepath.Join(home, defaultHomeDir, defaultConfigName)
+	homeConfigPath := filepath.Join(home, defaultHomeDir, defaultConfigName)
+	_, err = os.Stat(homeConfigPath)
+	if err != nil || !os.IsNotExist(err) {
+		return "configs/server-apiserver.yaml"
+	}
+	return homeConfigPath
 }
