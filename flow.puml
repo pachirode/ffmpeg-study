@@ -1,0 +1,45 @@
+@startuml
+title Audio Streaming Architecture (Pull Model)
+
+actor Client
+
+package "Client" {
+  Client -> Server : PullAudioStream(request)
+}
+
+package "Server" {
+  component "PullAudioStream Handler" as Handler
+  component "Audio Packetizer" as Packetizer
+  component "Local Audio Reader" as LocalReader
+
+  Handler -> Handler : Check Middleware Enabled?
+}
+
+package "Middleware (Optional)" {
+  component "Audio Stream Middleware\n(Kafka / Redis)" as Middleware
+}
+
+package "Storage" {
+  file "Audio File\n(sample.aac)" as AudioFile
+}
+
+Client -> Handler : gRPC Stream Request
+
+Handler --> Middleware : Pull Audio Stream
+Handler --> LocalReader : Read Audio File
+
+Middleware --> Handler : Audio Frame Stream
+AudioFile --> LocalReader : Audio Data
+LocalReader --> Handler : Audio Frame Stream
+
+Handler -> Packetizer : Wrap Audio Frames
+Packetizer --> Client : AudioPacket Stream
+
+note right of Handler
+- No push to client directly
+- Server controls stream rate
+- Client is passive consumer
+end note
+
+@enduml
+

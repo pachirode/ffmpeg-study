@@ -37,6 +37,9 @@ install.protoc-plugins:
 	@$(GO) install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@$(GRPC_GATEWAY_VERSION)
 	@$(SCRIPTS_DIR)/install-protoc.sh
 
+install.redis:
+	@$(SCRIPTS_DIR)/install-redis.sh
+
 install.swagger:
 	@$(GO) install github.com/go-swagger/go-swagger/cmd/swagger@$(GO_SWAGGER_VERSION)
 
