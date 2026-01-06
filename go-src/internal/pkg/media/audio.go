@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
+	"time"
 
 	"github.com/pachirode/pkg/log"
 
@@ -13,11 +13,14 @@ import (
 
 type AudioProcessor struct{}
 
-var _ MediaProcessor = (*AudioProcessor)(nil)
+var (
+	_          MediaProcessor = (*AudioProcessor)(nil)
+	outputPath string
+)
 
 // Decode 统一转成 PCM 格式数据
-func (p *AudioProcessor) Decode(ctx context.Context, inputPath string) (string, error) {
-	outputPath, err := utils.Runffmpeg(ctx, inputPath, "pcm")
+func (p *AudioProcessor) Decode(ctx context.Context, id, inputPath string) (string, error) {
+	outputPath, err := utils.RunffmpegTran(ctx, id, inputPath, "pcm")
 	if err != nil {
 		log.Fatalw("ffmpeg failed", "err", err)
 	}
@@ -28,14 +31,13 @@ func (p *AudioProcessor) Decode(ctx context.Context, inputPath string) (string, 
 	}
 
 	log.Infow("FFmpeg decode successfully", "size", info.Size(), "path", outputPath)
-	defer os.Remove(outputPath)
 
 	return outputPath, nil
 }
 
 // Transcode 将其转换成为其他格式，直接转换失败，就是用 pcm 中转
-func (p *AudioProcessor) Transcode(ctx context.Context, inputPath, targetFormat string) (string, error) {
-	outputPath, err := utils.Runffmpeg(ctx, inputPath, targetFormat)
+func (p *AudioProcessor) Transcode(ctx context.Context, id, inputPath, targetFormat string) (string, error) {
+	outputPath, err := utils.RunffmpegTran(ctx, id, inputPath, targetFormat)
 	if err != nil {
 		if targetFormat == "pcm" {
 			return "", err
@@ -46,46 +48,61 @@ func (p *AudioProcessor) Transcode(ctx context.Context, inputPath, targetFormat 
 		return outputPath, nil
 	}
 
-	pcmPath, err := p.Decode(ctx, inputPath)
+	pcmPath, err := p.Decode(ctx, "tmp", inputPath)
 	if err != nil {
 		return "", err
 	}
-	outputPath, err = utils.Runffmpeg(ctx, pcmPath, targetFormat)
+	outputPath, err = utils.RunffmpegTran(ctx, id, pcmPath, targetFormat)
+	if err != nil {
+		return "", nil
+	}
 
 	log.Infof("Transcode successfully", "path", outputPath)
-	defer os.Remove(outputPath)
+
 	return outputPath, err
 }
 
-func (p *AudioProcessor) Clip(ctx context.Context, inputPath, outputPath string, start, duration float64) error {
-	cmd := exec.CommandContext(ctx, "ffmpeg",
-		"-ss", fmt.Sprintf("%.2f", start),
-		"-t", fmt.Sprintf("%.2f", duration),
-		"-i", inputPath,
-		outputPath,
-	)
-	return cmd.Run()
+// Clip  按照时长裁剪媒体文件
+func (p *AudioProcessor) Clip(ctx context.Context, id, inputPath string, start, length time.Duration) (string, error) {
+	outputPath, err := utils.Clip(ctx, id, inputPath, start, length)
+	if err != nil {
+		return "", nil
+	}
+	log.Infof("Clip successfully", "path", outputPath)
+
+	return outputPath, err
 }
 
-func (p *AudioProcessor) SpeedChange(ctx context.Context, inputPath, outputPath string, speed float64) error {
-	cmd := exec.CommandContext(ctx, "ffmpeg",
-		"-i", inputPath,
-		"-filter:a", fmt.Sprintf("atempo=%.2f", speed),
-		outputPath,
-	)
-	return cmd.Run()
+// SpeedChange 设置媒体速度
+func (p *AudioProcessor) SpeedChange(ctx context.Context, id, inputPath string, speed float64) (string, error) {
+	if speed <= 0 {
+		return "", fmt.Errorf("speed must be > 0")
+	}
+	outputPath, err := utils.SpeedChange(ctx, id, inputPath, speed)
+	if err != nil {
+		return "", nil
+	}
+	log.Infof("SpeedChange successfully", "path", outputPath)
+
+	return outputPath, nil
 }
 
-func (p *AudioProcessor) SetVolume(ctx context.Context, inputPath, outputPath string, volume float64) error {
-	cmd := exec.CommandContext(ctx, "ffmpeg",
-		"-i", inputPath,
-		"-filter:a", fmt.Sprintf("volume=%.2f", volume),
-		outputPath,
-	)
-	return cmd.Run()
+// SetVolume 音量调整
+func (p *AudioProcessor) SetVolume(ctx context.Context, id, inputPath string, volume float64) (string, error) {
+	if volume <= 0 {
+		return "", fmt.Errorf("volume must be > 0")
+	}
+
+	outputPath, err := utils.SetVolume(ctx, id, inputPath, volume)
+	if err != nil {
+		return "", err
+	}
+	log.Infof("SetVolume successfully", "path", outputPath)
+
+	return outputPath, nil
 }
 
-func (p *AudioProcessor) Output(ctx context.Context, inputPath, outputPath string) error {
-	cmd := exec.CommandContext(ctx, "ffmpeg", "-i", inputPath, outputPath)
-	return cmd.Run()
+// Output 将处理之后的音频文件写到指定路径
+func (p *AudioProcessor) Output(ctx context.Context, id, outputPath string) error {
+	return utils.Output(id, outputPath)
 }

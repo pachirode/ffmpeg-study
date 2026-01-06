@@ -18,3 +18,11 @@ func GetTargetFormatArgs(format string) ([]string, error) {
 		return nil, fmt.Errorf("unsupported target format: %s", format)
 	}
 }
+
+type TmpState int
+
+const (
+	StateRunning TmpState = iota // ffmpeg 正在写
+	StateReady                   // ffmpeg 完成，可读取
+	StateReading                 // 正在被读取（防 cleanup）
+)

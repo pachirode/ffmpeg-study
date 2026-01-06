@@ -1,22 +1,50 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 )
 
 // MediaInfo 用于表示文件的所有元数据
 type MediaInfo struct {
-	FormatName  string `json:"format_name"`
-	CodecName   string `json:"codec_name"`
-	Duration    string `json:"duration"`
-	SampleRate  int    `json:"sample_rate,string"`
-	Channels    int    `json:"channels"`
-	BitRate     string `json:"bit_rate"`
-	StreamCount int    `json:"stream_count"`
+	FormatName string        `json:"format_name"`
+	Duration   time.Duration `json:"duration"`
+	FileExt    string        `json:"file_ext"`
+
+	HasVideo bool `json:"has_video"`
+	HasAudio bool `json:"has_audio"`
+
+	VideoCodec string `json:"video_codec"`
+	AudioCodec string `json:"audio_codec"`
+
+	Width      int `json:"width"`
+	Height     int `json:"height"`
+	SampleRate int `json:"sample_rate"`
+}
+
+type ffprobeResult struct {
+	Streams []ffprobeStream `json:"streams"`
+	Format  ffprobeFormat   `json:"format"`
+}
+
+type ffprobeStream struct {
+	CodecType  string `json:"codec_type"`
+	CodecName  string `json:"codec_name"`
+	Width      int    `json:"width"`
+	Height     int    `json:"height"`
+	SampleRate string `json:"sample_rate"`
+}
+
+type ffprobeFormat struct {
+	FormatName string `json:"format_name"`
+	Duration   string `json:"duration"`
 }
 
 // GetFileInfo 获取音频/视频文件的所有信息
@@ -29,56 +57,70 @@ func GetFileInfo(ctx context.Context, filePath string) (*MediaInfo, error) {
 		filePath,
 	)
 
-	out, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("ffprobe command failed: %v", err)
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stdout
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf(
+			"ffprobe failed: %w, output: %s",
+			err,
+			stdout.String(),
+		)
 	}
 
-	// 解析 JSON 输出
-	var data struct {
-		Format struct {
-			FormatName string `json:"format_name"`
-			Duration   string `json:"duration"`
-			BitRate    string `json:"bit_rate"`
-		} `json:"format"`
-		Streams []struct {
-			CodecName  string `json:"codec_name"`
-			SampleRate string `json:"sample_rate"`
-			Channels   int    `json:"channels"`
-		} `json:"streams"`
+	var probe ffprobeResult
+	if err := json.Unmarshal(stdout.Bytes(), &probe); err != nil {
+		return nil, err
 	}
 
-	if err := json.Unmarshal(out, &data); err != nil {
-		return nil, fmt.Errorf("json decode failed: %v", err)
+	info := &MediaInfo{
+		FormatName: probe.Format.FormatName,
+		FileExt:    getFileExt(filePath),
 	}
 
-	// 构建 MediaInfo 结构体
-	mediaInfo := &MediaInfo{
-		FormatName:  data.Format.FormatName,
-		Duration:    data.Format.Duration,
-		BitRate:     data.Format.BitRate,
-		StreamCount: len(data.Streams),
+	// 1. Duration（只从 format 读取）
+	if probe.Format.Duration != "" {
+		sec, err := strconv.ParseFloat(probe.Format.Duration, 64)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"invalid duration format: %s",
+				probe.Format.Duration,
+			)
+		}
+		info.Duration = time.Duration(sec * float64(time.Second))
 	}
 
-	if len(data.Streams) > 0 {
-		mediaInfo.CodecName = data.Streams[0].CodecName
-		if data.Streams[0].SampleRate != "" {
-			mediaInfo.SampleRate, err = parseSampleRate(data.Streams[0].SampleRate)
-			if err != nil {
-				return nil, fmt.Errorf("Invalid sampling rate format: %v", err)
+	// 2. Streams（codecType 完全由 ffprobe 决定）
+	for _, s := range probe.Streams {
+		switch s.CodecType {
+
+		case "video":
+			info.HasVideo = true
+			info.VideoCodec = s.CodecName
+			info.Width = s.Width
+			info.Height = s.Height
+
+		case "audio":
+			info.HasAudio = true
+			info.AudioCodec = s.CodecName
+
+			if s.SampleRate != "" {
+				sr, err := strconv.Atoi(s.SampleRate)
+				if err != nil {
+					return nil, fmt.Errorf(
+						"invalid sampling rate: %s",
+						s.SampleRate,
+					)
+				}
+				info.SampleRate = sr
 			}
-		} else {
-			mediaInfo.SampleRate = 0 // 采样率为空则置 0
 		}
 	}
 
-	return mediaInfo, nil
+	return info, nil
 }
 
-// parseSampleRate 解析音频流中的采样率
-func parseSampleRate(sampleRate string) (int, error) {
-	if sampleRate == "" {
-		return 0, nil
-	}
-	return strconv.Atoi(sampleRate)
+func getFileExt(path string) string {
+	return strings.ToLower(filepath.Ext(path))[1:]
 }

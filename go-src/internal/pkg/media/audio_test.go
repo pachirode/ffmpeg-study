@@ -2,41 +2,62 @@ package media
 
 import (
 	"context"
+	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/pachirode/ffmpeg-study/internal/pkg/utils"
 )
 
-func TestAudioProcessor_Decode(t *testing.T) {
-	inputPath := "../../../../assest/trailer.mkv"
+var (
+	id          string
+	inputPath   = "../../../../assest/trailer.mkv"
+	out         = "../../../../assest/tmp.mkv"
+	ap          = &AudioProcessor{}
+	ctx, cancel = context.WithTimeout(context.Background(), 50*time.Second)
+)
+
+func TestMain(m *testing.M) {
+	log.Println("TestMain judge inputfile")
 	if _, err := os.Stat(inputPath); err != nil {
 		if os.IsNotExist(err) {
-			t.Fatal("Fatal file not exist")
+			log.Fatalln("Input file not found")
+			os.Exit(-1)
 		}
-		t.Errorf("Error to stat file: %#V", err)
+		log.Fatalf("Error stat file %v", err)
+		os.Exit(-1)
 	}
-
-	ap := &AudioProcessor{}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	id = uuid.NewString()
 	defer cancel()
+	log.Println("TestMain start cleanup loop")
 
-	ap.Decode(ctx, inputPath)
+	utils.StartCleanup(1 * time.Minute)
+	defer utils.ShutdownCleanup()
+	m.Run()
+}
+
+func TestAudioProcessor_Decode(t *testing.T) {
+	ap.Decode(ctx, id, inputPath)
 }
 
 func TestAudioProcessor_TransCode(t *testing.T) {
-	inputPath := "../../../../assest/trailer.mkv"
-	if _, err := os.Stat(inputPath); err != nil {
-		if os.IsNotExist(err) {
-			t.Fatal("Fatal file not exist")
-		}
-		t.Errorf("Error to stat file: %#V", err)
-	}
+	ap.Transcode(ctx, id, inputPath, "wav")
+}
 
-	ap := &AudioProcessor{}
+func TestAudioProcessor_Clip(t *testing.T) {
+	ap.Clip(ctx, id, inputPath, 5*time.Second, 2*time.Second)
+}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func TestAudioProcessor_SpeedChange(t *testing.T) {
+	ap.SpeedChange(ctx, id, inputPath, 5)
+}
 
-	ap.Transcode(ctx, inputPath, "wav")
+func TestAudioProcessor_SetVolume(t *testing.T) {
+	ap.SetVolume(ctx, uuid.NewString(), inputPath, 1.5)
+}
+
+func TestAudioProcessor_Output(t *testing.T) {
+	ap.Output(ctx, id, out)
 }
