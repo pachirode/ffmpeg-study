@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/protobuf/empty.proto";
+import "apiserver/v1/healthz.proto";
+import "apiserver/v1/audio.proto";
+
+service FFmpegAudioStreamService {
+    rpc Healthz(google.protobuf.Empty) returns (HealthzResponse);
+    // 推送音频流
+    rpc PushAudioStream (stream AudioPacket) returns (AudioStreamResponse);
+    // 拉取音频流
+    rpc PullAudioStream (StartAudioStreamRequest) returns (stream AudioPacket);
+}
