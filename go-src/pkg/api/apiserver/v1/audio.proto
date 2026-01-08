@@ -14,8 +14,10 @@ message AudioMeta {
     int32 sample_rate = 2;
     // channels 通道数
     int32 channels = 3;
+    // stream 标记
+    string stream_id = 4;
     // pts 当前帧时间戳
-    google.protobuf.Timestamp pts = 4;
+    google.protobuf.Timestamp pts = 5;
 }
 
 // 音频数据包

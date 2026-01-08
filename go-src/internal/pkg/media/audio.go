@@ -106,3 +106,7 @@ func (p *AudioProcessor) SetVolume(ctx context.Context, id, inputPath string, vo
 func (p *AudioProcessor) Output(ctx context.Context, id, outputPath string) error {
 	return utils.Output(id, outputPath)
 }
+
+func NewAudioProcessor() *AudioProcessor {
+	return &AudioProcessor{}
+}

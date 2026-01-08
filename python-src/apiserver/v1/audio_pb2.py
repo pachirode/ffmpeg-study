@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x61piserver/v1/audio.proto\x12\x02v1\x1a\x1fgoogle/protobuf/timestamp.proto\"j\n\tAudioMeta\x12\r\n\x05\x63odec\x18\x01 \x01(\t\x12\x13\n\x0bsample_rate\x18\x02 \x01(\x05\x12\x10\n\x08\x63hannels\x18\x03 \x01(\x05\x12\'\n\x03pts\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"g\n\x0b\x41udioPacket\x12\x1b\n\x04meta\x18\x01 \x01(\x0b\x32\r.v1.AudioMeta\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12-\n\tcreatedAt\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\",\n\x17StartAudioStreamRequest\x12\x11\n\tstream_id\x18\x01 \x01(\t\"7\n\x13\x41udioStreamResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\tB;Z9github.com/pachirode/ffmpeg-study/pkg/api/apiserver/v1;v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x61piserver/v1/audio.proto\x12\x02v1\x1a\x1fgoogle/protobuf/timestamp.proto\"}\n\tAudioMeta\x12\r\n\x05\x63odec\x18\x01 \x01(\t\x12\x13\n\x0bsample_rate\x18\x02 \x01(\x05\x12\x10\n\x08\x63hannels\x18\x03 \x01(\x05\x12\x11\n\tstream_id\x18\x04 \x01(\t\x12\'\n\x03pts\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"g\n\x0b\x41udioPacket\x12\x1b\n\x04meta\x18\x01 \x01(\x0b\x32\r.v1.AudioMeta\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12-\n\tcreatedAt\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\",\n\x17StartAudioStreamRequest\x12\x11\n\tstream_id\x18\x01 \x01(\t\"7\n\x13\x41udioStreamResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\tB;Z9github.com/pachirode/ffmpeg-study/pkg/api/apiserver/v1;v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,11 +34,11 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z9github.com/pachirode/ffmpeg-study/pkg/api/apiserver/v1;v1'
   _globals['_AUDIOMETA']._serialized_start=65
-  _globals['_AUDIOMETA']._serialized_end=171
-  _globals['_AUDIOPACKET']._serialized_start=173
-  _globals['_AUDIOPACKET']._serialized_end=276
-  _globals['_STARTAUDIOSTREAMREQUEST']._serialized_start=278
-  _globals['_STARTAUDIOSTREAMREQUEST']._serialized_end=322
-  _globals['_AUDIOSTREAMRESPONSE']._serialized_start=324
-  _globals['_AUDIOSTREAMRESPONSE']._serialized_end=379
+  _globals['_AUDIOMETA']._serialized_end=190
+  _globals['_AUDIOPACKET']._serialized_start=192
+  _globals['_AUDIOPACKET']._serialized_end=295
+  _globals['_STARTAUDIOSTREAMREQUEST']._serialized_start=297
+  _globals['_STARTAUDIOSTREAMREQUEST']._serialized_end=341
+  _globals['_AUDIOSTREAMRESPONSE']._serialized_start=343
+  _globals['_AUDIOSTREAMRESPONSE']._serialized_end=398
 # @@protoc_insertion_point(module_scope)
