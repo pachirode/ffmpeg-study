@@ -1,7 +1,7 @@
 import logging
 import logging.config
 
-from common.config import DEBUG
+from utils.config import DEBUG
 
 
 class LoggerManager:
@@ -58,4 +58,5 @@ class LoggerManager:
 
     @classmethod
     def get_logger(cls, name: str = None) -> logging.Logger:
+        cls.init()
         return logging.getLogger(name or cls.DEFAULT_LOGGER)

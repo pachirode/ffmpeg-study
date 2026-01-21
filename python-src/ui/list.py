@@ -23,6 +23,7 @@ class ListPage(Page):
         self.table = QTableWidget(self)
         self.table.setObjectName("listPageTable")
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
         if self.table.columnCount() < 3:
             self.table.setColumnCount(3)

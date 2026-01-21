@@ -2,10 +2,9 @@ import grpc
 
 from concurrent import futures
 
-from common import config
-from common.log import LoggerManager
+from utils import config
+from utils.log import LoggerManager
 
-LoggerManager.init()
 logger = LoggerManager.get_logger()
 
 
