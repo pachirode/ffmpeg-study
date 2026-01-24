@@ -95,6 +95,8 @@ class ImagePage(Page):
         return True
 
     def set_image(self, new_image):
+        if new_image is None:
+            return
         self.image = new_image
         if self.image.colorSpace().isValid():
             self.image.convertedToColorSpace(QColorSpace.ColorModel.Rgb)

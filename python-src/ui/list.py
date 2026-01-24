@@ -33,8 +33,10 @@ class ListPage(Page):
     def init_table(self):
         self.table.setRowCount(0)
         mock_data = [
-            {"name": "演示视频.mp4", "type": "video", "url": "http://vjs.zencdn.net/v/oceans.mp4", "detail": "1080P"},
-            {"name": "测试音频.mp3", "type": "audio", "url": "", "detail": "320kbps"}
+            {"name": "演示视频.mp4", "type": "video", "url": "http://vjs.zencdn.net/v/oceans.mp4", "detail": "1080P", "remote": ""},
+            {"name": "测试音频.mp3", "type": "audio", "url": "", "detail": "320kbps"},
+            {"name": "测试文档.txt", "type": "txt", "url": r".\app.log", "detail": ""},
+            {"name": "测试图片.png", "type": "image", "url": r".\extract.png", "detail": ""}
         ]
         for i, info in enumerate(mock_data):
             self.table.insertRow(i)

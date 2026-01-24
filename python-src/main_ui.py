@@ -1,5 +1,6 @@
 import sys
 
+from PySide6.QtCore import QUrl
 from PySide6.QtGui import QGuiApplication, Qt
 from PySide6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout, QApplication, QPushButton, QSpacerItem, QSizePolicy, QLabel, QHBoxLayout
 
@@ -8,6 +9,7 @@ from ui.list import ListPage
 from ui.media import MediaPage
 from ui.image import ImagePage
 from utils.file_path import FilePathUtils
+from utils.file_source import FileSourceUtils
 from utils.log import LoggerManager
 
 logger = LoggerManager.get_logger()
@@ -30,10 +32,10 @@ class MediaManager(QWidget):
         self.path_label = None
         self.status_label: QLabel = None
 
-        self.edit_page = None
+        self.edit_page: EditPage = None
         self.list_page: ListPage = None
-        self.media_page = None
-        self.image_page = None
+        self.media_page: MediaPage = None
+        self.image_page: ImagePage = None
 
         self.setup_ui()
         self.setup_signals()
@@ -79,8 +81,7 @@ class MediaManager(QWidget):
 
     def back_btn_clicked(self):
         self.path_label.setText(self.path_util.get_back())
-        if self.feature_stack.currentIndex() != 0:
-            self.feature_stack.setCurrentIndex(0)
+        self.feature_stack.setCurrentIndex(0)
         self.status_label.setText("")
 
     def setup_signals(self):
@@ -89,17 +90,31 @@ class MediaManager(QWidget):
         self.set_list_page_signal()
 
     def set_list_page_signal(self):
-        item = self.list_page.table.item(0, 0)
         self.list_page.table.itemDoubleClicked.connect(self.handle_double_click)
 
     def handle_double_click(self, item):
         row_data = self.list_page.table.item(item.row(), 0).data(Qt.ItemDataRole.UserRole)
         file_name = row_data['name']
+        url = row_data['url']
         match row_data['type']:
             case 'video' | 'audio':
                 self.status_label.setText("正在播放")
                 self.path_label.setText(self.path_util.get_child(file_name))
+                self.feature_stack.setCurrentIndex(2)
+                self.media_page.player.setSource(QUrl(url))
+                self.media_page.player.play()
+            case 'image':
+                self.status_label.setText("查看图片")
+                self.path_label.setText(self.path_util.get_child(file_name))
+                self.feature_stack.setCurrentIndex(3)
+                self.image_page.set_image(FileSourceUtils.get_image_source(self, url))
+            case 'txt':
+                self.status_label.setText("正在修改")
+                self.path_label.setText(self.path_util.get_child(file_name))
                 self.feature_stack.setCurrentIndex(1)
+                self.edit_page.editor.setText(FileSourceUtils.get_text_source(self, url))
+            case 'dir':
+                self.path_label.setText(self.path_util.get_child(file_name))
 
 
 if __name__ == '__main__':

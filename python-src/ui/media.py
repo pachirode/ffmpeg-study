@@ -1,5 +1,7 @@
 ﻿import sys
 
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem, QTableWidget, QVBoxLayout, QWidget, QComboBox, QSpinBox, QFrame, QProgressBar
 
 from ui.page import Page
@@ -16,6 +18,10 @@ class MediaPage(Page):
         self.output_btn = None
         self.progress_bar = None
         self.displayer = None
+
+        self.player = None
+        self.audio_player = None
+        self.video_player = None
 
         self.setup_ui()
 
@@ -37,6 +43,14 @@ class MediaPage(Page):
         self.displayer = QWidget(media_frame)
         self.displayer.setObjectName("mediaPlayer")
         layout.addWidget(self.displayer)
+        self.displayer.setVisible(False)
+
+        self.player = QMediaPlayer()
+        self.audio_player = QAudioOutput()
+        self.video_player = QVideoWidget()
+        self.player.setAudioOutput(self.audio_player)
+        self.player.setVideoOutput(self.video_player)
+        layout.addWidget(self.video_player)
 
         self.layout.addWidget(media_frame)
 
