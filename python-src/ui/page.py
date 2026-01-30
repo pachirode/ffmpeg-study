@@ -1,7 +1,6 @@
 ﻿import sys
 
-from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem, QTableWidget, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QApplication, QVBoxLayout, QWidget
 
 
 class Page(QWidget):

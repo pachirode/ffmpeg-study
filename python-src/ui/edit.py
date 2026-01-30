@@ -1,6 +1,6 @@
 ﻿import sys
 
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem, QTableWidget, QVBoxLayout, QWidget, QTextEdit
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QPushButton, QTextEdit
 
 from ui.page import Page
 

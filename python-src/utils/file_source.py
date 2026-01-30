@@ -3,8 +3,8 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-from PySide6.QtCore import QBuffer, QByteArray
-from PySide6.QtGui import QImage, QImageReader
+from PySide6.QtCore import QByteArray
+from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QMessageBox, QWidget
 
 from utils.error import FILE_SOURCE

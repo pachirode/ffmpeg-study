@@ -1,6 +1,6 @@
 ﻿import sys
 
-from PySide6.QtGui import QGuiApplication, QImage, QPalette, QImageReader, QColorSpace, QPixmap, QImageWriter
+from PySide6.QtGui import QGuiApplication, QImage, QPalette, QImageReader, QColorSpace, QPixmap
 from PySide6.QtCore import QDir
 from PySide6.QtWidgets import QLabel, QApplication, QSizePolicy, QScrollArea, QScrollBar, QMessageBox, QHBoxLayout, QPushButton
 

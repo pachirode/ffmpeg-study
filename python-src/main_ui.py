@@ -2,12 +2,14 @@ import sys
 
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QGuiApplication, Qt
-from PySide6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout, QApplication, QPushButton, QSpacerItem, QSizePolicy, QLabel, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout, QApplication, QPushButton, QSpacerItem, QSizePolicy, \
+    QLabel, QHBoxLayout, QMainWindow, QTabWidget, QDialog, QMessageBox
 
 from ui.edit import EditPage
+from ui.image import ImagePage
 from ui.list import ListPage
 from ui.media import MediaPage
-from ui.image import ImagePage
+from ui.tab import LocalTab, SSHTab, GrpcTab, HTTPTab
 from utils.file_path import FilePathUtils
 from utils.file_source import FileSourceUtils
 from utils.log import LoggerManager
@@ -19,7 +21,7 @@ class MediaManager(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle('MediaManager')
-        self.resize(QGuiApplication.primaryScreen().availableSize() * 3 / 5)
+        # self.resize(QGuiApplication.primaryScreen().availableSize() * 3 / 5)
 
         self.main_widget = QWidget(self)
         self.main_widget.setObjectName("mediaManager")
@@ -117,9 +119,99 @@ class MediaManager(QWidget):
                 self.path_label.setText(self.path_util.get_child(file_name))
 
 
+
+class ConnectionDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("新建连接")
+        self.resize(QGuiApplication.primaryScreen().availableSize() * 2 / 5)
+
+        self.tab_widget = QTabWidget()
+        self.ok_btn = QPushButton("确认")
+        self.ok_btn.clicked.connect(self.accept)
+        self.cancel_btn = QPushButton("取消")
+        self.cancel_btn.clicked.connect(self.reject)
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        layout = QVBoxLayout()
+        h_layout = QHBoxLayout()
+        layout.addWidget(self.tab_widget)
+        layout.addLayout(h_layout)
+        h_layout.addWidget(self.ok_btn)
+        h_layout.addWidget(self.cancel_btn)
+
+        self.setLayout(layout)
+
+        self.tab_widget.addTab(LocalTab(), "本地连接")
+        self.tab_widget.addTab(SSHTab(), "SSH 远程连接")
+        self.tab_widget.addTab(GrpcTab(), "Grpc")
+        self.tab_widget.addTab(HTTPTab(), "HTTP/HTTPS")
+
+    def get_connection_info(self):
+        current_index = self.tab_widget.currentIndex()
+        current_widget = self.tab_widget.widget(current_index)
+        return current_widget.get_info()
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("文件管理系统")
+        self.resize(QGuiApplication.primaryScreen().availableSize() * 3 / 5)
+
+        self.connections = {}
+
+        self.tab_widget = QTabWidget(self)
+        self.tab_widget.setObjectName("mainTab")
+        self.tab_widget.setTabsClosable(True)
+        self.setCentralWidget(self.tab_widget)
+
+        self.setup_menu()
+
+    def setup_menu(self):
+        menubar = self.menuBar()
+        connection_menu = menubar.addMenu("连接")
+        new_conn_action = connection_menu.addAction("新建连接")
+        new_conn_action.triggered.connect(self.new_connection)
+
+    def new_connection(self):
+        dialog = ConnectionDialog(self)
+        if dialog.exec():
+            conn_type, root_path, info = dialog.get_connection_info()
+            key = self._generate_connection_info(conn_type, info)
+            if key is None:
+                QMessageBox.warning(self, "提示", "该链接模式暂时不支持")
+                return
+            if key in self.connections:
+                QMessageBox.information(self, "提示", "该链接已经存在，直接切换")
+                self.tab_widget.setCurrentIndex(self.connections[key])
+                return
+
+            ip = "local"
+            if info is not None:
+                ip = info.get("host", "unknown")
+
+            tab_page = MediaManager()
+            tab_index = self.tab_widget.addTab(tab_page, f"{ip}-{conn_type}")
+            self.tab_widget.setCurrentIndex(tab_index)
+            self.connections[key] = tab_index
+
+    def _generate_connection_info(self, conn_type, info):
+        if conn_type == "file":
+            return f"local:{info}"
+        elif conn_type == "ssh":
+            return f"ssh:{info['host']}:{info['port']}:{info['username']}"
+        else:
+            return None
+
+
 if __name__ == '__main__':
     logger.debug("Test PySide6 Widget")
     app = QApplication(sys.argv)
-    window = MediaManager()
+    # window = MediaManager()
+    # window.show()
+    window = MainWindow()
     window.show()
     sys.exit(app.exec())

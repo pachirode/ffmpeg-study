@@ -1,7 +1,7 @@
 ﻿import sys
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem, QTableWidget, QVBoxLayout, QWidget, QTableWidgetItem
+from PySide6.QtWidgets import QApplication, QTableWidget, QTableWidgetItem
 
 from ui.page import Page
 
@@ -35,8 +35,8 @@ class ListPage(Page):
         mock_data = [
             {"name": "演示视频.mp4", "type": "video", "url": "http://vjs.zencdn.net/v/oceans.mp4", "detail": "1080P", "remote": ""},
             {"name": "测试音频.mp3", "type": "audio", "url": "", "detail": "320kbps"},
-            {"name": "测试文档.txt", "type": "txt", "url": r".\app.log", "detail": ""},
-            {"name": "测试图片.png", "type": "image", "url": r".\extract.png", "detail": ""}
+            {"name": "测试文档.txt", "type": "txt", "url": r"C:\Users\YI\Desktop\edi_server_20260113.log", "detail": ""},
+            {"name": "测试图片.png", "type": "image", "url": r"C:\Users\YI\Downloads\extract.png", "detail": ""}
         ]
         for i, info in enumerate(mock_data):
             self.table.insertRow(i)
